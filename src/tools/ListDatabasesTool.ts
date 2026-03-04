@@ -34,8 +34,7 @@ export class ListDatabasesTool implements Tool {
 
     try {
       // Validate stateFilter against valid states
-      const normalizedStateFilter = (stateFilter as string).toUpperCase();
-      if (!VALID_STATE_FILTERS.includes(normalizedStateFilter as any)) {
+      if (!VALID_STATE_FILTERS.includes(stateFilter as any)) {
         return {
           success: false,
           message: `Invalid stateFilter value: '${stateFilter}'. Allowed values: ${[...VALID_STATE_FILTERS].join(', ')}`,
