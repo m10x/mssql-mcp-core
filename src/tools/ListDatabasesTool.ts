@@ -2,6 +2,9 @@ import sql from "mssql";
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { getEnvironmentManager } from "../config/EnvironmentManager.js";
 
+const VALID_STATE_FILTERS = ['ONLINE', 'OFFLINE', 'RESTORING', 'RECOVERING', 
+                              'SUSPECT', 'ALL'] as const;
+
 export class ListDatabasesTool implements Tool {
   [key: string]: any;
   name = "list_databases";
@@ -19,7 +22,7 @@ export class ListDatabasesTool implements Tool {
       },
       stateFilter: {
         type: "string",
-        enum: ["ONLINE", "OFFLINE", "RESTORING", "RECOVERING", "SUSPECT", "ALL"],
+        enum: [...VALID_STATE_FILTERS],
         description: "Filter by database state. Default: ONLINE",
       },
     },
@@ -30,6 +33,16 @@ export class ListDatabasesTool implements Tool {
     const { environment, includeSystemDbs = false, stateFilter = "ONLINE" } = params ?? {};
 
     try {
+      // Validate stateFilter against valid states
+      const normalizedStateFilter = (stateFilter as string).toUpperCase();
+      if (!VALID_STATE_FILTERS.includes(normalizedStateFilter as any)) {
+        return {
+          success: false,
+          message: `Invalid stateFilter value: '${stateFilter}'. Allowed values: ${[...VALID_STATE_FILTERS].join(', ')}`,
+          error: "INVALID_PARAMETER",
+        };
+      }
+      
       const envManager = await getEnvironmentManager();
       const envConfig = envManager.getEnvironment(environment);
 
